@@ -2,13 +2,22 @@ package jeux1;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.net.URL;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class Course extends JFrame {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	// dimension d l'ecran
 	final int LARGEUR = 900, HAUTEUR = 650;
@@ -19,10 +28,21 @@ public class Course extends JFrame {
 	// Constante de directions
 	final int HAUT = 0, DROITE = 1, BAS = 2, GAUCHE = 3;
 
+	//a la valeur true si qq un gagne
+	boolean gagnantOk = false;
+	
+	//nombre de tours 
+	int toursJ1 = 0, toursJ2 = 0;
+	
 	// garde la trace de la direction
 	int directionJ1 = HAUT;
 	int directionJ2 = HAUT;
 
+	//ajout de voituure :
+	URL url1 =null,url2 =null,url3 =null,url4 =null, urlt =null;
+	Image img1,img2,img3,img4, imgt; 
+	
+	
 	// creation des contours du circuit
 	Rectangle gauche = new Rectangle(0, 0, LARGEUR / 9, HAUTEUR);
 	Rectangle droite = new Rectangle((LARGEUR / 9) * 8, 0, LARGEUR / 9, HAUTEUR);
@@ -50,10 +70,33 @@ public class Course extends JFrame {
 
 	// constructeur
 	public Course() {
+		//On crrer la fenetre
 		super("La course du destin");
 		setSize(LARGEUR, HAUTEUR);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
+		
+		//on charge les adresses
+		try {
+			 url1 =this.getClass().getResource("haut.png");
+			 url2 =this.getClass().getResource("bas.png");
+			 url3 =this.getClass().getResource("droite.png");
+			 url4 =this.getClass().getResource("gauche.png");
+			 urlt =this.getClass().getResource("titre.jpg");
+			 
+		}catch(Exception e) {}
+		
+		//On recupere les images pointé par les url
+		img1 =Toolkit.getDefaultToolkit().getImage(url1);
+		img2 =Toolkit.getDefaultToolkit().getImage(url2);
+		img3 =Toolkit.getDefaultToolkit().getImage(url3);
+		img4 =Toolkit.getDefaultToolkit().getImage(url4);
+		imgt =Toolkit.getDefaultToolkit().getImage(urlt);
+
+		//Afficher ecran de bienvenue
+		JOptionPane.showMessageDialog(null, "Bienvenue sur cette course, Bonne chance pour survivre");
+		
+		//Démarrer les threads
 		Mouvement1 m1 = new Mouvement1();
 		Mouvement2 m2 = new Mouvement2();
 		m1.start();
@@ -91,12 +134,20 @@ public class Course extends JFrame {
 		g.setColor(Color.YELLOW);
 		g.fillRect(arrivee.x, arrivee.y, arrivee.width, arrivee.height);
 
-		// joueur 1
-		g.setColor(Color.BLUE);
-		g.fill3DRect(j1.x, j1.y, j1.width, j1.height, true);
-
+		//image de titre au milieu de l'ecran 
+		g.drawImage(imgt,centre.x+10,centre.y+80,this);
+		
+		// joueur 1 le dessiner
+		if(directionJ1==HAUT)
+			g.drawImage(img1, j1.x,j1.y,this);
+		if(directionJ1==BAS) 
+			g.drawImage(img2, j1.x,j1.y,this);
+		if(directionJ1==DROITE) 
+			g.drawImage(img3, j1.x,j1.y,this);
+		if(directionJ1==GAUCHE) 
+			g.drawImage(img4, j1.x,j1.y,this);
+			
 		// joueur 2
-
 		g.setColor(Color.RED);
 		g.fill3DRect(j2.x, j2.y, j2.width, j2.height, true);
 	}
@@ -121,6 +172,21 @@ public class Course extends JFrame {
 					if (j1.intersects(centre)) {
 						vitesseJ1 = -2.5;
 					}
+					
+					// nombre de tours 
+					if(j1.intersects(arrivee)&&directionJ1==HAUT) {
+						toursJ1++;
+					}
+					
+					//whuut ?
+					if(toursJ1>=24) {
+						if(!gagnantOk) {
+							gagnantOk=true;
+							JOptionPane.showMessageDialog(null, "Le joueur 1 à gagné !!");
+							break;
+						}
+					}
+					
 					// augmentation de la vitesse
 					if (vitesseJ1 <= 5)
 						vitesseJ1 += .2;
@@ -205,7 +271,7 @@ public class Course extends JFrame {
 						j2.x += (int) vitesseJ2;
 					}
 		
-					Thread.sleep(75);
+					Thread.sleep(200);
 				} catch (Exception e) {
 					break;
 				}
